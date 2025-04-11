@@ -4,6 +4,9 @@
  * Copyright (c) 2024 Kouhei Ito
  * Copyright (c) 2024 M5Stack
  *
+ * 中文注释翻译与整理：Robben，2025年4月
+ * 原始项目地址：https://github.com/m5stack/StampFly
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -254,14 +257,14 @@ void init_copter(void) {
     led_show();
 
     // Initialize Serial communication
-    USBSerial.begin(115200);
+    Serial.begin(115200);
     delay(1500);
-    USBSerial.printf("Start StampFly!\r\n");
+    Serial.printf("Start StampFly!\r\n");
 
     // Initialize PWM
     init_pwm();
     sensor_init();
-    USBSerial.printf("Finish sensor init!\r\n");
+    Serial.printf("Finish sensor init!\r\n");
 
     // PID GAIN and etc. Init
     control_init();
@@ -281,8 +284,8 @@ void init_copter(void) {
 
     setup_pwm_buzzer();
 
-    USBSerial.printf("Finish StampFly init!\r\n");
-    USBSerial.printf("Enjoy Flight!\r\n");
+    Serial.printf("Finish StampFly init!\r\n");
+    Serial.printf("Enjoy Flight!\r\n");
     start_tone();
 }
 
@@ -306,8 +309,8 @@ void loop_400Hz(void) {
 
     // LED Drive
     led_drive();
-    // if (Interval_time>0.006)USBSerial.printf("%9.6f\n\r", Interval_time);
-    // USBSerial.printf("Mode=%d OverG=%d\n\r", Mode, OverG_flag);
+    // if (Interval_time>0.006)Serial.printf("%9.6f\n\r", Interval_time);
+    // Serial.printf("Mode=%d OverG=%d\n\r", Mode, OverG_flag);
     // Begin Mode select
     if (Mode == INIT_MODE) {
         motor_stop();
@@ -678,7 +681,7 @@ void get_command(void) {
     } else if (Control_mode == RATECONTROL) {
         Roll_rate_reference  = get_rate_ref(Stick[AILERON]);
         Pitch_rate_reference = get_rate_ref(Stick[ELEVATOR]);
-        // USBSerial.printf("%9.6f\n\r", Pitch_rate_reference*180.0f/PI);
+        // Serial.printf("%9.6f\n\r", Pitch_rate_reference*180.0f/PI);
     }
 
     Yaw_angle_command = Stick[RUDDER];
@@ -832,7 +835,7 @@ uint8_t auto_landing(void) {
         Pitch_rate_reference = get_rate_ref(Stick[ELEVATOR]);
     }
 
-    // USBSerial.printf("thro=%9.6f Alt=%9.6f state=%d flag=%d\r\n",auto_throttle, Altitude2, Landing_state, flag);
+    // Serial.printf("thro=%9.6f Alt=%9.6f state=%d flag=%d\r\n",auto_throttle, Altitude2, Landing_state, flag);
     return flag;
 }
 

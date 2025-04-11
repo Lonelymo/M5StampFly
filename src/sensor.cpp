@@ -78,24 +78,24 @@ volatile uint8_t Under_voltage_flag = 0;
 // volatile uint16_t Range=1000;
 
 uint8_t scan_i2c() {
-    USBSerial.println("I2C scanner. Scanning ...");
+    Serial.println("I2C scanner. Scanning ...");
     delay(50);
     byte count = 0;
     for (uint8_t i = 1; i < 127; i++) {
         Wire1.beginTransmission(i);        // Begin I2C transmission Address (i)
         if (Wire1.endTransmission() == 0)  // Receive 0 = success (ACK response)
         {
-            USBSerial.print("Found address: ");
-            USBSerial.print(i, DEC);
-            USBSerial.print(" (0x");
-            USBSerial.print(i, HEX);
-            USBSerial.println(")");
+            Serial.print("Found address: ");
+            Serial.print(i, DEC);
+            Serial.print(" (0x");
+            Serial.print(i, HEX);
+            Serial.println(")");
             count++;
         }
     }
-    USBSerial.print("Found ");
-    USBSerial.print(count, DEC);  // numbers of devices
-    USBSerial.println(" device(s).");
+    Serial.print("Found ");
+    Serial.print(count, DEC);  // numbers of devices
+    Serial.println(" device(s).");
     return count;
 }
 
@@ -118,7 +118,7 @@ void sensor_calc_offset_avarage(void) {
 
 void test_voltage(void) {
     for (uint16_t i = 0; i < 1000; i++) {
-        USBSerial.printf("Voltage[%03d]:%f\n\r", i, ina3221.getVoltage(INA3221_CH2));
+        Serial.printf("Voltage[%03d]:%f\n\r", i, ina3221.getVoltage(INA3221_CH2));
     }
 }
 
@@ -131,8 +131,8 @@ void sensor_init() {
 
     Wire1.begin(SDA_PIN, SCL_PIN, 400000UL);
     if (scan_i2c() == 0) {
-        USBSerial.printf("No I2C device!\r\n");
-        USBSerial.printf("Can not boot AtomFly2.\r\n");
+        Serial.printf("No I2C device!\r\n");
+        Serial.printf("Can not boot AtomFly2.\r\n");
         while (1);
     }
 
@@ -148,7 +148,7 @@ void sensor_init() {
         if (ToF_bottom_data_ready_flag) {
             ToF_bottom_data_ready_flag = 0;
             cnt++;
-            USBSerial.printf("%d %d\n\r", cnt, tof_bottom_get_range());
+            Serial.printf("%d %d\n\r", cnt, tof_bottom_get_range());
         }
     }
     delay(10);
@@ -215,7 +215,7 @@ float sensor_read(void) {
     gyro_y = imu_get_gyro_y();
     gyro_z = imu_get_gyro_z();
 
-    // USBSerial.printf("%9.6f %9.6f %9.6f\n\r", Elapsed_time, sens_interval, acc_z);
+    // Serial.printf("%9.6f %9.6f %9.6f\n\r", Elapsed_time, sens_interval, acc_z);
 
     // Axis Transform
     Accel_x_raw    = acc_y;
@@ -265,7 +265,7 @@ float sensor_read(void) {
         Yaw_angle   = -Drone_ahrs.getYaw() * (float)DEG_TO_RAD;
 
         // for debug
-        // USBSerial.printf("%6.3f %7.4f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f\n\r",
+        // Serial.printf("%6.3f %7.4f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f\n\r",
         //   Elapsed_time, Interval_time, acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z);
 
         // Get Altitude (30Hz)
@@ -283,7 +283,7 @@ float sensor_read(void) {
                 // old_range[0] = dist;
                 RawRange = tof_bottom_get_range();
                 if (Mode == PARKING_MODE) RawRangeFront = tof_front_get_range();
-                // USBSerial.printf("%9.6f %d\n\r", Elapsed_time, RawRange);
+                // Serial.printf("%9.6f %d\n\r", Elapsed_time, RawRange);
                 if (RawRange > 20) {
                     Range = RawRange;
                 }
@@ -310,7 +310,7 @@ float sensor_read(void) {
                     old_range[1]    = Range;
                 }
 
-                // USBSerial.printf("%9.6f, %9.6f, %9.6f, %9.6f, %9.6f\r\n",Elapsed_time,Altitude/1000.0,  Altitude2,
+                // Serial.printf("%9.6f, %9.6f, %9.6f, %9.6f, %9.6f\r\n",Elapsed_time,Altitude/1000.0,  Altitude2,
                 // Alt_velocity,-(Accel_z_raw - Accel_z_offset)*9.81/(-Accel_z_offset));
             }
         } else
@@ -330,7 +330,7 @@ float sensor_read(void) {
         if (Range0flag > RNAGE0FLAG_MAX) Range0flag = RNAGE0FLAG_MAX;
         Alt_velocity = EstimatedAltitude.Velocity;
         Az_bias      = EstimatedAltitude.Bias;
-        // USBSerial.printf("Sens=%f Az=%f Altitude=%f Velocity=%f Bias=%f\n\r",Altitude, Az, Altitude2, Alt_velocity,
+        // Serial.printf("Sens=%f Az=%f Altitude=%f Velocity=%f Bias=%f\n\r",Altitude, Az, Altitude2, Alt_velocity,
         // Az_bias);
     }
 
@@ -357,6 +357,6 @@ float sensor_read(void) {
     preMode = Mode;  // 今のモードを記憶
 
     uint32_t et = micros();
-    // USBSerial.printf("Sensor read %f %f %f\n\r", (mt-st)*1.0e-6, (et-mt)*1e-6, (et-st)*1.0e-6);
+    // Serial.printf("Sensor read %f %f %f\n\r", (mt-st)*1.0e-6, (et-mt)*1e-6, (et-st)*1.0e-6);
     return (et - st) * 1.0e-6;
 }
