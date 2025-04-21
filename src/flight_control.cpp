@@ -31,14 +31,14 @@
 //
 // Desigend by Kouhei Ito 2023~2024
 //
-// 2024-06-20 高度制御改良　段差対応
-// 2024-06-25 高度制御改良　上昇持続バグ修正
-// 2024-06-29 自動離陸追加
-// 2024-06-29 自動着陸追加
-// 2024-06-29 送信機OFFで自動着陸
-// 2024-06-29 着陸時、Madgwick Filter Off
-// 2024-07-21 flip関数追加、高度センサの測定限界で自動降下（暫定版）
-// 2024-08-10 Acroモードで高度制御働かないバグを修正
+// 2024-06-20 高级控制改进，支持更细致的调整
+// 2024-06-25 改进高度控制，修复持续上升的 bug
+// 2024-06-29 添加自动起飞功能
+// 2024-06-29 添加自动降落功能
+// 2024-06-29 当遥控器关闭时自动执行降落
+// 2024-06-29 降落时关闭 Madgwick 姿态滤波器
+// 2024-07-21 添加翻滚（flip）函数；当高度传感器达到测量极限时自动下降（暂定版）
+// 2024-08-10 修复 Acro 模式下高度控制无效的 bug
 
 #include "flight_control.hpp"
 #include "rc.hpp"
@@ -49,29 +49,29 @@
 #include "button.hpp"
 #include "buzzer.h"
 
-// モータPWM出力Pinのアサイン
+// 电机 PWM 输出引脚分配
 // Motor PWM Pin
 const int pwmFrontLeft  = 5;
 const int pwmFrontRight = 42;
 const int pwmRearLeft   = 10;
 const int pwmRearRight  = 41;
 
-// モータPWM周波数
+// 电机 PWM 频率
 // Motor PWM Frequency
 const int freq = 150000;
 
-// PWM分解能
+// PWM 分辨率
 // PWM Resolution
 const int resolution = 8;
 
-// モータチャンネルのアサイン
+// 电机通道分配
 // Motor Channel
 const int FrontLeft_motor  = 0;
 const int FrontRight_motor = 1;
 const int RearLeft_motor   = 2;
 const int RearRight_motor  = 3;
 
-// 制御周期
+// 控制周期
 // Control period
 float Control_period = 0.0025f;  // 400Hz
 
@@ -136,12 +136,12 @@ volatile float FrontLeft_motor_duty  = 0.0f;
 volatile float RearRight_motor_duty  = 0.0f;
 volatile float RearLeft_motor_duty   = 0.0f;
 
-// 制御目標
+// 控制目标
 // PID Control reference
-// 角速度目標値
+// 角速度目标值
 // Rate reference
 volatile float Roll_rate_reference = 0.0f, Pitch_rate_reference = 0.0f, Yaw_rate_reference = 0.0f;
-// 角度目標値
+// 角度目标値
 // Angle reference
 volatile float Roll_angle_reference = 0.0f, Pitch_angle_reference = 0.0f, Yaw_angle_reference = 0.0f;
 // 舵角指令値
@@ -152,7 +152,7 @@ volatile float Thrust_command = 0.0f, Thrust_command2 = 0.0f;
 // 角速度指令値
 // Rate command
 volatile float Roll_rate_command = 0.0f, Pitch_rate_command = 0.0f, Yaw_rate_command = 0.0f;
-// 角度指令値
+// 姿态角目标值（角度目标值）
 // Angle comannd
 volatile float Roll_angle_command = 0.0f, Pitch_angle_command = 0.0f, Yaw_angle_command = 0.0f;
 
@@ -205,7 +205,7 @@ Filter Duty_rl;
 volatile float Thrust0 = 0.0;
 uint8_t Alt_flag       = 0;
 
-// 速度目標Z
+// 速度目标值
 float Z_dot_ref = 0.0f;
 
 // 高度目標
@@ -235,7 +235,7 @@ float get_trim_duty(float voltage);
 void flip(void);
 float get_rate_ref(float x);
 
-// 割り込み関数
+// 中断函数（定时器中断处理函数）
 // Intrupt function
 hw_timer_t* timer = NULL;
 void IRAM_ATTR onTimer() {
@@ -250,8 +250,8 @@ void init_copter(void) {
     // Initialaze LED function
     led_init();
     esp_led(0x110000, 1);
-    onboard_led1(WHITE, 1);
-    onboard_led2(WHITE, 1);
+    onboard_led1(COLOR_WHITE, 1);
+    onboard_led2(COLOR_WHITE, 1);
     led_show();
     led_show();
     led_show();
@@ -293,7 +293,7 @@ void init_copter(void) {
 void loop_400Hz(void) {
     static uint8_t led = 1;
     float sense_time;
-    // 割り込みにより400Hzで以降のコードが実行
+    // 以下代码以400Hz中断执行。
     while (Loop_flag == 0);
     Loop_flag = 0;
 
@@ -420,7 +420,7 @@ void flip(void) {
     uint16_t flip_step;
 
     Control_period = Interval_time;
-    Led_color      = FLIPCOLOR;
+    Led_color      = COLOR_FLIP;
 
     // Judge Mode change
     if (judge_mode_change() == 1) Mode = AUTO_LANDING_MODE;
@@ -1003,7 +1003,6 @@ void angle_control(void) {
 
         if (Control_mode == ANGLECONTROL) {
             // Angle Control
-            // Led_color = RED;
             // Get Roll and Pitch angle ref
             Roll_angle_reference  = 0.5f * PI * (Roll_angle_command - Aileron_center);
             Pitch_angle_reference = 0.5f * PI * (Pitch_angle_command - Elevator_center);
